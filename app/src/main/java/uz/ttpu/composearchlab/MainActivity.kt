@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import uz.ttpu.composearchlab.ui.signin.SignInRoute
+import uz.ttpu.composearchlab.ui.taste.TastePickerRoute
 import uz.ttpu.composearchlab.ui.theme.ComposeArchLabTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +13,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ComposeArchLabTheme {
-                SignInRoute()
+                // The screen owns its Scaffold, so no outer Scaffold is needed.
+                TastePickerRoute()
             }
         }
     }
