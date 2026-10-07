@@ -29,13 +29,17 @@ fun SignInRoute(viewModel: SignInViewModel = viewModel()) {
     val uiState = viewModel.uiState.value
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // BUG (Task 8): after a rotation the Snackbar appears again.
+    // BUG (Task 8): without the fix, the Snackbar appeared again after a rotation.
     // Why: the ViewModel survives the rotation and still holds the Error state.
     // The Activity and the composition are recreated, so this LaunchedEffect starts
     // again, sees Error, and shows the same message a second time.
+    //
+    // FIX (Task 9): after the Snackbar is shown we tell the ViewModel,
+    // which resets Error to SignedOut. The message can no longer reappear after rotation.
     LaunchedEffect(uiState) {
         if (uiState is SignInUiState.Error) {
             snackbarHostState.showSnackbar(uiState.message)
+            viewModel.onErrorShown()
         }
     }
 
@@ -56,6 +60,7 @@ fun SignInScreen(
     onSignIn: (email: String, password: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // UI-element state: kept in the screen, survives rotation
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
 
@@ -65,18 +70,26 @@ fun SignInScreen(
     ) {
         when (uiState) {
             is SignInUiState.SignedIn -> Text("Welcome, ${uiState.email}")
+
             SignInUiState.InProgress -> {
                 SignInForm(
-                    email, { email = it }, password, { password = it },
+                    email = email,
+                    onEmailChange = { email = it },
+                    password = password,
+                    onPasswordChange = { password = it },
                     enabled = false,
                     onSignIn = { onSignIn(email, password) }
                 )
                 CircularProgressIndicator()
             }
+
             SignInUiState.SignedOut,
             is SignInUiState.Error -> {
                 SignInForm(
-                    email, { email = it }, password, { password = it },
+                    email = email,
+                    onEmailChange = { email = it },
+                    password = password,
+                    onPasswordChange = { password = it },
                     enabled = true,
                     onSignIn = { onSignIn(email, password) }
                 )

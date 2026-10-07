@@ -16,14 +16,12 @@ class SignInViewModel : ViewModel() {
         get() = _uiState
 
     fun onSignIn(email: String, password: String) {
-        // 1: double-tap protection
+        // double-tap protection: ignore if a sign-in is already running
         if (_uiState.value is SignInUiState.InProgress) return
-        // 2: show progress, start coroutine
         _uiState.value = SignInUiState.InProgress
         viewModelScope.launch {
-            // 3: simulate network
-            delay(1500)
-            // 4: hard-coded only because this is a simulation
+            delay(1500) // simulate the network
+            // hard-coded only because this is a simulation
             _uiState.value = if (password == "kotlin123") {
                 SignInUiState.SignedIn(email)
             } else {
@@ -32,7 +30,8 @@ class SignInViewModel : ViewModel() {
         }
     }
 
-    // Task 9: "the Snackbar was shown" is an event; reset the state
+    // "The Snackbar was shown" is an event: the UI reports it,
+    // and the ViewModel resets the state so the message appears only once.
     fun onErrorShown() {
         if (_uiState.value is SignInUiState.Error) {
             _uiState.value = SignInUiState.SignedOut
