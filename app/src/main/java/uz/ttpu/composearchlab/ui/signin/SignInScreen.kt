@@ -7,10 +7,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -23,7 +27,21 @@ import uz.ttpu.composearchlab.ui.theme.ComposeArchLabTheme
 @Composable
 fun SignInRoute(viewModel: SignInViewModel = viewModel()) {
     val uiState = viewModel.uiState.value
-    Scaffold { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // BUG (Task 8): after a rotation the Snackbar appears again.
+    // Why: the ViewModel survives the rotation and still holds the Error state.
+    // The Activity and the composition are recreated, so this LaunchedEffect starts
+    // again, sees Error, and shows the same message a second time.
+    LaunchedEffect(uiState) {
+        if (uiState is SignInUiState.Error) {
+            snackbarHostState.showSnackbar(uiState.message)
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
         SignInScreen(
             uiState = uiState,
             onSignIn = viewModel::onSignIn,
@@ -38,7 +56,6 @@ fun SignInScreen(
     onSignIn: (email: String, password: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // UI-element state: kept in the screen, survives rotation
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
 
