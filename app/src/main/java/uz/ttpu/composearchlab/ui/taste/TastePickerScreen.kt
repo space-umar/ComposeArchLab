@@ -1,5 +1,6 @@
 package uz.ttpu.composearchlab.ui.taste
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -11,7 +12,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uz.ttpu.composearchlab.ui.theme.ComposeArchLabTheme
 
-// Stateful entry point: collects the StateFlow only while the screen is STARTED.
 @Composable
 fun TastePickerRoute(viewModel: TastePickerViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -22,7 +22,6 @@ fun TastePickerRoute(viewModel: TastePickerViewModel = viewModel()) {
     )
 }
 
-// Stateless: draws whatever state it is given.
 @Composable
 fun TastePickerScreen(
     state: TastePickerState,
@@ -30,8 +29,19 @@ fun TastePickerScreen(
     onLikeClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(modifier = modifier) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
+    Scaffold(
+        modifier = modifier,
+        bottomBar = {
+            TastePickerBottomBar(
+                likedCount = state.likedCount,
+                required = REQUIRED_LIKES,
+                canContinue = state.canContinue,
+                onContinueClick = { Log.d("TastePicker", "Continue clicked") },
+                onSkipClick = { Log.d("TastePicker", "Later clicked") }
+            )
+        }
+    ) { innerPadding ->
+        Column(Modifier.padding(innerPadding)) {
             GenreChips(
                 genres = state.genres,
                 selectedGenre = state.selectedGenre,
@@ -51,7 +61,7 @@ fun TastePickerScreen(
 @Composable
 private fun TastePickerScreenPreview() = ComposeArchLabTheme {
     TastePickerScreen(
-        state = TastePickerState(artists = seedArtists, likedIds = setOf(1, 2)),
+        state = TastePickerState(seedArtists, likedIds = setOf(1, 2)),
         onGenreClick = {},
         onLikeClick = {}
     )
